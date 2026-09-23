@@ -99,7 +99,6 @@ const model = new ChatGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
 }).bindTools(tools);
 
-// const SYSTEM_PROMPT = `You are ABC Motors' assistant. Handle four situations: new vehicle inquiries (use create_lead), pipeline/test-drive status checks (use get_pipeline_status), booking/delivery checks (use get_booking_status), and service requests from existing owners (use create_service_ticket). Be concise, professional, and use accurate automotive terminology.`;
 
 export async function POST(req) {
   const { messages: history } = await req.json();
