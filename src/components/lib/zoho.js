@@ -59,16 +59,8 @@ async function createZohoLead({
   preferredCity,
   vehicleModel,
 }) {
-  // Zoho's Leads module requires Last_Name specifically — splitting here keeps
-  // your LLM tool schema simple ("fullName") while satisfying Zoho's real fields.
   const [firstName, ...rest] = fullName.trim().split(" ");
   const lastName = rest.join(" ") || firstName;
-
-  console.log({
-    First_Name: firstName,
-    Last_Name: lastName,
-    Vehicle_Model_of_Interest: vehicleModel,
-  });
 
   return zohoRequest("Leads", "POST", {
     data: [

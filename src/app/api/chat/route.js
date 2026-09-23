@@ -20,7 +20,6 @@ import { SYSTEM_PROMPT } from "@/components/lib/prompts";
 
 const createLead = tool(
   async ({ fullName, phone, email, preferredCity, vehicleModel }) => {
-    console.log({ at: "route createLead", fullName, vehicleModel });
     try {
       const result = await createZohoLead({
         fullName,
@@ -124,8 +123,6 @@ const model = new ChatGoogleGenerativeAI({
 
 export async function POST(req) {
   const { messages: history } = await req.json();
-
-  console.log({ history });
 
   let messages = [
     new SystemMessage(SYSTEM_PROMPT),
