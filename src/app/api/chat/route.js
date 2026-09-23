@@ -13,6 +13,7 @@ import {
   getPipelineStatus,
   getBookingStatus,
   createServiceTicket,
+  updateDealFollowUp,
 } from "@/components/lib/zoho";
 import { SYSTEM_PROMPT } from "@/components/lib/prompts";
 
@@ -70,10 +71,83 @@ const getPipeline = tool(
   },
 );
 
-const getBooking = tool(
-  async ({bookingId }) => {
+const updatePipelineFollowUp = tool(
+  async ({
+    dealId,
+    phoneOrDealId,
+    preferredCallbackTime,
+    preferredCallbackChannel,
+    rescheduleRequest,
+    notes,
+  }) => {
     try {
-      const result = await getBookingStatus({ bookingId});
+      // The dealId from an earlier turn isn't kept in the history,
+      // so look the deal up again from the phone/Booking ID if needed
+      let id = dealId;
+      if (!id && phoneOrDealId) {
+        const lookup = await getPipelineStatus({ phoneOrDealId });
+        id = lookup.data?.[0]?.dealId;
+      }
+      if (!id) {
+        return JSON.stringify({
+          error:
+            "No matching deal found. Ask the customer to re-confirm their mobile number or Booking ID.",
+        });
+      }
+
+      const result = await updateDealFollowUp({
+        dealId: id,
+        preferredCallbackTime,
+        preferredCallbackChannel,
+        rescheduleRequest,
+        notes,
+      });
+      return JSON.stringify(result);
+    } catch (err) {
+      return JSON.stringify({
+        error:
+          "Couldn't update the CRM right now. Let the customer know the dealership will follow up.",
+      });
+    }
+  },
+  {
+    name: "update_pipeline_followup",
+    description:
+      "Update an existing Deal's follow-up preferences (callback time, callback channel) and/or log a test-drive reschedule request. Pass dealId if known from get_pipeline_status; otherwise pass the customer's mobile number or Booking ID as phoneOrDealId. Send only the fields the customer provided.",
+    schema: z.object({
+      dealId: z
+        .string()
+        .optional()
+        .describe("dealId from the get_pipeline_status result, if available"),
+      phoneOrDealId: z
+        .string()
+        .optional()
+        .describe(
+          "Customer's mobile number or Booking ID, used if dealId is not available",
+        ),
+      preferredCallbackTime: z
+        .string()
+        .optional()
+        .describe("When to call back, e.g. 'Weekdays after 6 PM'"),
+      preferredCallbackChannel: z
+        .enum(["Call", "WhatsApp", "Email"])
+        .optional()
+        .describe("How the customer wants to be contacted"),
+      rescheduleRequest: z
+        .string()
+        .optional()
+        .describe(
+          "Requested new test-drive slot, e.g. 'Saturday 27 Sep, morning'",
+        ),
+      notes: z.string().optional().describe("Any other follow-up request"),
+    }),
+  },
+);
+
+const getBooking = tool(
+  async ({ bookingId }) => {
+    try {
+      const result = await getBookingStatus({ bookingId });
       return JSON.stringify(result);
     } catch (err) {
       return JSON.stringify({
@@ -113,7 +187,13 @@ const createServiceTicketTool = tool(
   },
 );
 
-const tools = [createLead, getPipeline, getBooking, createServiceTicketTool];
+const tools = [
+  createLead,
+  getPipeline,
+  updatePipelineFollowUp,
+  getBooking,
+  createServiceTicketTool,
+];
 const toolsByName = Object.fromEntries(tools.map((t) => [t.name, t]));
 
 const model = new ChatGoogleGenerativeAI({

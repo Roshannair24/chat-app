@@ -81,10 +81,11 @@ async function createZohoLead({
   });
 }
 
-async function getPipelineStatus({ phoneOrDealId }) {
-  const criteria = `(Mobile:equals:${phoneOrDealId})`;
-  return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
-}
+// async function getPipelineStatus({ phoneOrDealId }) {
+//   const criteria = `(Mobile:equals:${phoneOrDealId})`;
+//   console.log({phoneOrDealId})
+//   return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
+// }
 
 // async function getPipelineStatus({ phoneOrDealId }) {
 //   const value = String(phoneOrDealId).trim().replace(/^#/, ""); // "#MAH-9921" -> "MAH-9921"
@@ -100,6 +101,53 @@ async function getPipelineStatus({ phoneOrDealId }) {
 //     `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`
 //   );
 // }
+
+
+
+function formatDeal(d) {
+  return {
+    dealId: d.id,
+    customerName: d.Account_Name?.name ?? null,
+    mobile: d.Mobile ?? null,
+    stage: d.Stage ?? null,
+    vehicleModel: d.Vehicle_Modal ?? null,
+    testDrive: {
+      scheduledOn: d.Test_Drive_Scheduled_On ?? null, // date only, no time
+      status: d.Test_Drive_Status ?? null,
+    },
+    quotation: {
+      amount: d.Quotation_Amount ?? null,
+    },
+    dealer: {
+      dealershipName: d.Dealership_Name ?? null,
+      dealerName: d.Dealer_Name ?? null,
+      dealerPhone: d.Dealer_Phone ?? null,
+    },
+    followUp: {
+      preferredCallbackTime: d.Preferred_Callback_Time ?? null,
+      preferredCallbackChannel: d.Preferred_Callback_Channel ?? null,
+      nextStep: d.Next_Step ?? null,
+    },
+  };
+}
+
+async function getPipelineStatus({ phoneOrDealId }) {
+  const value = String(phoneOrDealId).trim().replace(/^#/, ""); // "#MAH-9921" -> "MAH-9921"
+
+  // 1. Try Booking ID first
+  const byBookingId = await zohoRequest(
+    `Deals/search?criteria=${encodeURIComponent(`(Booking_ID:equals:${value})`)}`,
+  );
+  if (byBookingId.data?.length) return { data: byBookingId.data.map(formatDeal) };
+
+  // 2. Nothing found, so fall back to Mobile
+  const byMobile = await zohoRequest(
+    `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`,
+  );
+  if (byMobile.data?.length) return { data: byMobile.data.map(formatDeal) };
+
+  return { data: [] };
+}
 
 async function getBookingStatus({ bookingId }) {
   const value = String(bookingId).trim();
@@ -141,9 +189,55 @@ async function createServiceTicket({
   });
 }
 
+
+async function updateDealFollowUp({
+  dealId,
+  preferredCallbackTime,
+  preferredCallbackChannel,
+  rescheduleRequest,
+  notes,
+}) {
+  const nextStep = [
+    rescheduleRequest && `Test drive reschedule requested: ${rescheduleRequest}`,
+    preferredCallbackTime && `Call back: ${preferredCallbackTime}`,
+    preferredCallbackChannel && `Via: ${preferredCallbackChannel}`,
+    notes,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  const record = { id: dealId };
+  if (preferredCallbackTime) record.Preferred_Callback_Time = preferredCallbackTime;
+  if (preferredCallbackChannel) record.Preferred_Callback_Channel = preferredCallbackChannel;
+  if (nextStep) record.Next_Step = nextStep;
+
+  const res = await zohoRequest("Deals", "PUT", { data: [record] });
+
+  // Zoho can return HTTP 200 while the individual record failed
+  const result = res.data?.[0];
+  if (result?.status !== "success") {
+    throw new Error(`Deal update failed: ${JSON.stringify(result)}`);
+  }
+
+  // Add a Note so the change shows on the Deal's timeline
+  if (nextStep) {
+    await zohoRequest(`Deals/${dealId}/Notes`, "POST", {
+      data: [
+        {
+          Note_Title: "Follow-up updated via AI assistant",
+          Note_Content: nextStep,
+        },
+      ],
+    });
+  }
+
+  return { data: [{ dealId, updated: record }] };
+}
+
 export {
   createZohoLead,
   getPipelineStatus,
   getBookingStatus,
   createServiceTicket,
+  updateDealFollowUp,
 };
