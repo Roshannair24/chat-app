@@ -34,3 +34,21 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Architecture
+
+One chat message crosses the browser boundary exactly twice — once in, once back out. Everything else (talking to the LLM, and, when the model asks for a tool, talking to Zoho CRM) happens inside a single server-side route. That route is the only place OAuth tokens and API keys are allowed to live.
+
+```
+                                            LLM provider
+                                     (Gemini · gemini-3.5-flash)
+                                                  ^ |
+                2. prompt + tool                  | |
+                schemas + history                 | |
+                                                  | v 3. tool_call, or final reply
+Browser (Chat UI) --1. user message--> Next.js API route --4. OAuth REST call--> Zoho CRM REST API
+                  <-6. streamed reply-  (/api/chat)      <-5. record result---    (Leads . Deals . Cases)
+```
+
+
+
