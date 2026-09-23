@@ -81,29 +81,6 @@ async function createZohoLead({
   });
 }
 
-// async function getPipelineStatus({ phoneOrDealId }) {
-//   const criteria = `(Mobile:equals:${phoneOrDealId})`;
-//   console.log({phoneOrDealId})
-//   return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
-// }
-
-// async function getPipelineStatus({ phoneOrDealId }) {
-//   const value = String(phoneOrDealId).trim().replace(/^#/, ""); // "#MAH-9921" -> "MAH-9921"
-
-//   // 1. Try Booking ID first
-//   const byBookingId = await zohoRequest(
-//     `Deals/search?criteria=${encodeURIComponent(`(Booking_ID:equals:${value})`)}`
-//   );
-//   if (byBookingId.data?.length) return byBookingId;
-
-//   // 2. Nothing found, so fall back to Mobile
-//   return zohoRequest(
-//     `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`
-//   );
-// }
-
-
-
 function formatDeal(d) {
   return {
     dealId: d.id,
@@ -138,7 +115,8 @@ async function getPipelineStatus({ phoneOrDealId }) {
   const byBookingId = await zohoRequest(
     `Deals/search?criteria=${encodeURIComponent(`(Booking_ID:equals:${value})`)}`,
   );
-  if (byBookingId.data?.length) return { data: byBookingId.data.map(formatDeal) };
+  if (byBookingId.data?.length)
+    return { data: byBookingId.data.map(formatDeal) };
 
   // 2. Nothing found, so fall back to Mobile
   const byMobile = await zohoRequest(
@@ -189,7 +167,6 @@ async function createServiceTicket({
   });
 }
 
-
 async function updateDealFollowUp({
   dealId,
   preferredCallbackTime,
@@ -198,7 +175,8 @@ async function updateDealFollowUp({
   notes,
 }) {
   const nextStep = [
-    rescheduleRequest && `Test drive reschedule requested: ${rescheduleRequest}`,
+    rescheduleRequest &&
+      `Test drive reschedule requested: ${rescheduleRequest}`,
     preferredCallbackTime && `Call back: ${preferredCallbackTime}`,
     preferredCallbackChannel && `Via: ${preferredCallbackChannel}`,
     notes,
@@ -207,8 +185,10 @@ async function updateDealFollowUp({
     .join(" | ");
 
   const record = { id: dealId };
-  if (preferredCallbackTime) record.Preferred_Callback_Time = preferredCallbackTime;
-  if (preferredCallbackChannel) record.Preferred_Callback_Channel = preferredCallbackChannel;
+  if (preferredCallbackTime)
+    record.Preferred_Callback_Time = preferredCallbackTime;
+  if (preferredCallbackChannel)
+    record.Preferred_Callback_Channel = preferredCallbackChannel;
   if (nextStep) record.Next_Step = nextStep;
 
   const res = await zohoRequest("Deals", "PUT", { data: [record] });
