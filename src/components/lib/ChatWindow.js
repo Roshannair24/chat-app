@@ -148,45 +148,6 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      {/* Stage stepper */}
-      <div
-        style={{
-          flex: "0 0 52px",
-          background: "#FFFFFF",
-          borderBottom: "1px solid #E5E1DA",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "0 24px",
-          overflowX: "auto",
-        }}
-      >
-        {STAGES.map((label) => {
-          const active = stage === label;
-          return (
-            <div
-              key={label}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 999,
-                background: active ? ACCENT : "#EFEDE7",
-                whiteSpace: "nowrap",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: active ? "#FFFFFF" : "#6B6459",
-                }}
-              >
-                {label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
       {/* Messages */}
       <div
         ref={scrollRef}

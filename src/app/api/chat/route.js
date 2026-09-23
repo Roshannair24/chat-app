@@ -91,14 +91,36 @@ const getBooking = tool(
   },
 );
 
-const tools = [createLead, getPipeline, getBooking];
+const createServiceTicketTool = tool(
+  async ({ registrationNumber, odometerReading, issue, preferredCenter }) => {
+    const result = await createServiceTicket({
+      registrationNumber,
+      odometerReading,
+      issue,
+      preferredCenter,
+    });
+    return JSON.stringify(result);
+  },
+  {
+    name: "create_service_ticket",
+    description:
+      "Create a service/complaint ticket for an existing vehicle owner.",
+    schema: z.object({
+      registrationNumber: z.string(),
+      odometerReading: z.number(),
+      issue: z.string(),
+      preferredCenter: z.string(),
+    }),
+  },
+);
+
+const tools = [createLead, getPipeline, getBooking, createServiceTicketTool];
 const toolsByName = Object.fromEntries(tools.map((t) => [t.name, t]));
 
 const model = new ChatGoogleGenerativeAI({
   model: process.env.GEMINI_MODEL ?? "gemini-3.5-flash",
   apiKey: process.env.GOOGLE_API_KEY,
 }).bindTools(tools);
-
 
 export async function POST(req) {
   const { messages: history } = await req.json();
