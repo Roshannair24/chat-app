@@ -54,9 +54,9 @@ async function zohoRequest(path, method = "GET", body) {
 
 async function createZohoLead({
   fullName,
-  //   phone,
-  //   email,
-  //   preferredCity,
+  phone,
+  email,
+  preferredCity,
   vehicleModel,
 }) {
   // Zoho's Leads module requires Last_Name specifically — splitting here keeps
@@ -75,9 +75,9 @@ async function createZohoLead({
       {
         First_Name: firstName,
         Last_Name: lastName,
-        //   Phone: phone,
-        //   Email: email,
-        //   City: preferredCity,
+        Phone: phone,
+        Email: email,
+        City: preferredCity,
         Vehicle_Modal_of_Interest: vehicleModel, // the custom field you created earlier
       },
     ],
