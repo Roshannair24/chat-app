@@ -28,7 +28,6 @@ config({ path: ".env" });
   const result = await getBookingStatus({
     bookingId: "#MAH-9922", // BRD's seed data
   });
-  console.log("getBookingStatus:", JSON.stringify(result, null, 2));
 })();
 
 // (async () => {
