@@ -2,6 +2,7 @@ import {
   createZohoLead,
   getPipelineStatus,
   getBookingStatus,
+  createServiceTicket,
 } from "./src/components/lib/zoho.js";
 import { config } from "dotenv";
 config({ path: ".env" });
@@ -17,18 +18,23 @@ config({ path: ".env" });
 //   console.log(JSON.stringify(result, null, 2));
 // })();
 
-// (async () => {
-//   const result = await getPipelineStatus({
-//     phoneOrDealId: "9999999990", // Priya Patel deal
-//   });
-//   console.log("getPipelineStatus:", JSON.stringify(result, null, 2));
-// })();
-
 (async () => {
-  const result = await getBookingStatus({
-    bookingId: "#MAH-9922", // BRD's seed data
+  const result = await getPipelineStatus({
+    phoneOrDealId: "9999999990", // Priya Patel deal
   });
+  console.log("getPipelineStatus:", JSON.stringify(result, null, 2));
 })();
+
+// (async () => {
+//   const result = await getBookingStatus({
+//     // bookingId: "#MAH-9922", // BRD's seed data
+
+//     bookingId:"9999999991"
+//   });
+
+//   console.log("result");
+//   console.dir({ result }, { depth: null });
+// })();
 
 // (async () => {
 //   const result = await createServiceTicket({

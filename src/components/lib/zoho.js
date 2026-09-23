@@ -86,10 +86,41 @@ async function getPipelineStatus({ phoneOrDealId }) {
   return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
 }
 
-async function getBookingStatus({ bookingId }) {
-  const criteria = `(Booking_ID:equals:${bookingId})`;
+// async function getPipelineStatus({ phoneOrDealId }) {
+//   const value = String(phoneOrDealId).trim().replace(/^#/, ""); // "#MAH-9921" -> "MAH-9921"
 
-  return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
+//   // 1. Try Booking ID first
+//   const byBookingId = await zohoRequest(
+//     `Deals/search?criteria=${encodeURIComponent(`(Booking_ID:equals:${value})`)}`
+//   );
+//   if (byBookingId.data?.length) return byBookingId;
+
+//   // 2. Nothing found, so fall back to Mobile
+//   return zohoRequest(
+//     `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`
+//   );
+// }
+
+async function getBookingStatus({ bookingId }) {
+  const value = String(bookingId).trim();
+
+  // 1. Try Booking ID first
+  const criteria = `(Booking_ID:equals:${value})`;
+
+  const byBookingId = await zohoRequest(
+    `Deals/search?criteria=${encodeURIComponent(criteria)}`,
+  );
+
+  if (byBookingId.data?.length) return byBookingId;
+
+  // 2. Nothing found, so fall back to Mobile
+  const byMobile = await zohoRequest(
+    `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`,
+  );
+
+  if (byMobile.data?.length) return byMobile;
+
+  return { data: [] };
 }
 
 async function createServiceTicket({
