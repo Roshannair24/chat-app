@@ -16,26 +16,10 @@ async function getAccessToken() {
     grant_type: "refresh_token",
   });
 
-  console.log("params");
-  console.dir(
-    {
-      accountsDomain,
-      refresh_token: process.env.ZOHO_REFRESH_TOKEN,
-      client_id: process.env.ZOHO_CLIENT_ID,
-      client_secret: process.env.ZOHO_CLIENT_SECRET,
-      grant_type: "refresh_token",
-      params,
-    },
-    { depth: null },
-  );
-
   const res = await fetch(`${accountsDomain}/oauth/v2/token?${params}`, {
     method: "POST",
   });
   const data = await res.json();
-
-  console.log("data");
-  console.dir(data, { depth: null });
 
   if (!data.access_token) {
     throw new Error(`Zoho token refresh failed: ${JSON.stringify(data)}`);
@@ -61,14 +45,7 @@ async function zohoRequest(path, method = "GET", body) {
   });
 
   const data = await res.json();
-  console.dir(
-    {
-      path,
-      body,
-      data,
-    },
-    { depth: null },
-  );
+
   if (!res.ok) {
     throw new Error(`Zoho API error (${res.status}): ${JSON.stringify(data)}`);
   }
@@ -101,7 +78,7 @@ async function createZohoLead({
         //   Phone: phone,
         //   Email: email,
         //   City: preferredCity,
-        Vehicle_Model_of_Interest: vehicleModel, // the custom field you created earlier
+        Vehicle_Modal_of_Interest: vehicleModel, // the custom field you created earlier
       },
     ],
   });
