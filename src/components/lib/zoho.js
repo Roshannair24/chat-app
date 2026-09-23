@@ -109,22 +109,33 @@ function formatDeal(d) {
 }
 
 async function getPipelineStatus({ phoneOrDealId }) {
-  const value = String(phoneOrDealId).trim().replace(/^#/, ""); // "#MAH-9921" -> "MAH-9921"
+  try {
+    const value = String(phoneOrDealId).trim().replace(/^#/, "");
 
-  // 1. Try Booking ID first
-  const byBookingId = await zohoRequest(
-    `Deals/search?criteria=${encodeURIComponent(`(Booking_ID:equals:${value})`)}`,
-  );
-  if (byBookingId.data?.length)
-    return { data: byBookingId.data.map(formatDeal) };
+    // 1/by deal Id : Zoho record id (19 digits): fetch it directly
+    if (/^\d{15,}$/.test(value)) {
+      const byDealId = await zohoRequest(`Deals/${value}`);
 
-  // 2. Nothing found, so fall back to Mobile
-  const byMobile = await zohoRequest(
-    `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`,
-  );
-  if (byMobile.data?.length) return { data: byMobile.data.map(formatDeal) };
+      if (byDealId.data?.length) return { data: byDealId.data.map(formatDeal) };
+    }
 
-  return { data: [] };
+    // 2. Try Booking ID first
+    const byBookingId = await zohoRequest(
+      `Deals/search?criteria=${encodeURIComponent(`(Booking_ID:equals:${value})`)}`,
+    );
+    if (byBookingId.data?.length)
+      return { data: byBookingId.data.map(formatDeal) };
+
+    // 2. Nothing found, so fall back to Mobile
+    const byMobile = await zohoRequest(
+      `Deals/search?criteria=${encodeURIComponent(`(Mobile:equals:${value})`)}`,
+    );
+    if (byMobile.data?.length) return { data: byMobile.data.map(formatDeal) };
+
+    return { data: [] };
+  } catch (error) {
+    return { data: [] };
+  }
 }
 
 async function getBookingStatus({ bookingId }) {

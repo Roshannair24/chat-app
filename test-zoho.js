@@ -20,7 +20,7 @@ config({ path: ".env" });
 
 (async () => {
   const result = await getPipelineStatus({
-    phoneOrDealId: "9999999990", // Priya Patel deal
+    phoneOrDealId: "1429639000000571191", // Priya Patel deal
   });
   console.log("getPipelineStatus:", JSON.stringify(result, null, 2));
 })();
