@@ -160,7 +160,7 @@ export default function ChatWindow() {
           gap: 12,
         }}
       >
-        {messages.map((m, i) => (
+        {messages?.map((m, i) => (
           <div
             key={i}
             style={{

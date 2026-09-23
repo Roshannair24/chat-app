@@ -71,9 +71,9 @@ const getPipeline = tool(
 );
 
 const getBooking = tool(
-  async ({ bookingIdOrPhone }) => {
+  async ({bookingId }) => {
     try {
-      const result = await getBookingStatus({ bookingIdOrPhone });
+      const result = await getBookingStatus({ bookingId});
       return JSON.stringify(result);
     } catch (err) {
       return JSON.stringify({
@@ -86,7 +86,7 @@ const getBooking = tool(
     name: "get_booking_status",
     description:
       "Validate a Booking ID or phone number and return delivery/VIN allocation stage for a booked vehicle.",
-    schema: z.object({ bookingIdOrPhone: z.string() }),
+    schema: z.object({ bookingId: z.string() }),
   },
 );
 

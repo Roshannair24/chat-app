@@ -44,6 +44,11 @@ async function zohoRequest(path, method = "GET", body) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  // Zoho search returns 204 with an empty body when there are no matches
+  if (res.status === 204) {
+    return { data: [] };
+  }
+
   const data = await res.json();
 
   if (!res.ok) {
@@ -81,8 +86,9 @@ async function getPipelineStatus({ phoneOrDealId }) {
   return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
 }
 
-async function getBookingStatus({ bookingIdOrPhone }) {
-  const criteria = `(Booking_ID:equals:${bookingIdOrPhone})`;
+async function getBookingStatus({ bookingId }) {
+  const criteria = `(Booking_ID:equals:${bookingId})`;
+
   return zohoRequest(`Deals/search?criteria=${encodeURIComponent(criteria)}`);
 }
 
